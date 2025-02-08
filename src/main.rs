@@ -11,15 +11,15 @@ use microkernel::consts::{NCPU, STACK_PAGE_NUM};
 #[repr(C, align(16))]
 struct Stack([u8; 4096 * STACK_PAGE_NUM * NCPU]);
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 static mut STACK0: Stack = Stack([0; 4096 * STACK_PAGE_NUM * NCPU]);
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub fn _start() {
     kmain()
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub fn kmain() {
     let mut my_uart = Uart::new(0x1000_0000);
 
