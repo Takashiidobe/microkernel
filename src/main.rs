@@ -25,35 +25,20 @@ pub fn kmain() {
 
     my_uart.init();
 
-    // Now test println! macro!
-    println!("This is my operating system!");
-    println!("I'm so awesome. If you start typing something, I'll show you what you typed!");
+    println!("This is the Operating system");
 
-    // Now see if we can read stuff:
-    // Usually we can use #[test] modules in Rust, but it would convolute the
-    // task at hand. So, we'll just add testing snippets.
     loop {
         if let Some(c) = my_uart.get() {
             match c {
                 8 => {
-                    // This is a backspace, so we essentially have
-                    // to write a space and backup again:
                     print!("{}{}{}", 8 as char, ' ', 8 as char);
                 }
                 10 | 13 => {
-                    // Newline or carriage-return
                     println!();
                 }
                 0x1b => {
-                    // Those familiar with ANSI escape sequences
-                    // knows that this is one of them. The next
-                    // thing we should get is the left bracket [
-                    // These are multi-byte sequences, so we can take
-                    // a chance and get from UART ourselves.
-                    // Later, we'll button this up.
                     if let Some(next_byte) = my_uart.get() {
                         if next_byte == 91 {
-                            // This is a right bracket! We're on our way!
                             if let Some(b) = my_uart.get() {
                                 match b as char {
                                     'A' => {
