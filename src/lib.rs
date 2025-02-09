@@ -1,12 +1,14 @@
 #![no_std]
 #![no_main]
 #![feature(alloc_error_handler)]
+
 pub mod consts;
 pub mod cpu;
 pub mod memory;
 pub mod page;
 pub mod plic;
 pub mod process;
+pub mod syscall;
 pub mod trap;
 pub mod uart;
 
@@ -40,7 +42,7 @@ macro_rules! print
 {
     ($($args:tt)+) => ({
         use core::fmt::Write;
-        let _ = write!(Uart::new(0x1000_0000), $($args)+);
+        let _ = write!($crate::uart::Uart::new(0x1000_0000), $($args)+);
     });
 }
 #[macro_export]
