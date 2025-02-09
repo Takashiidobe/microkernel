@@ -1,12 +1,12 @@
 #![no_std]
 #![no_main]
 #![feature(alloc_error_handler)]
-
 pub mod consts;
 pub mod cpu;
 pub mod memory;
 pub mod page;
 pub mod plic;
+pub mod process;
 pub mod trap;
 pub mod uart;
 
