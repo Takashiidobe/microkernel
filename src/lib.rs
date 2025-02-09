@@ -3,8 +3,10 @@
 #![feature(alloc_error_handler)]
 
 pub mod consts;
+pub mod cpu;
 pub mod memory;
 pub mod page;
+pub mod trap;
 pub mod uart;
 
 use core::arch::global_asm;

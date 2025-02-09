@@ -26,6 +26,7 @@ use microkernel::RODATA_START;
 use microkernel::TEXT_END;
 use microkernel::TEXT_START;
 use microkernel::consts::{NCPU, STACK_PAGE_NUM};
+use microkernel::cpu;
 use microkernel::id_map_range;
 use microkernel::memory;
 use microkernel::page;
@@ -201,6 +202,25 @@ pub fn kinit() {
 }
 
 #[unsafe(no_mangle)]
+extern "C" fn kinit_hart(hartid: usize) {
+    // All non-0 harts initialize here.
+    unsafe {
+        // We have to store the kernel's table. The tables will be moved
+        // back and forth between the kernel's table and user
+        // applicatons' tables.
+        cpu::mscratch_write((&mut cpu::KERNEL_TRAP_FRAME[hartid] as *mut cpu::TrapFrame) as usize);
+        // Copy the same mscratch over to the supervisor version of the
+        // same register.
+        cpu::sscratch_write(cpu::mscratch_read());
+        cpu::KERNEL_TRAP_FRAME[hartid].hartid = hartid;
+        // We can't do the following until zalloc() is locked, but we
+        // don't have locks, yet :( cpu::KERNEL_TRAP_FRAME[hartid].satp
+        // = cpu::KERNEL_TRAP_FRAME[0].satp;
+        // cpu::KERNEL_TRAP_FRAME[hartid].trap_stack = page::zalloc(1);
+    }
+}
+
+#[unsafe(no_mangle)]
 pub fn main() {
     // kmain() starts in supervisor mode. So, we should have the trap
     // vector setup and the MMU turned on when we get here.
@@ -242,7 +262,7 @@ pub fn main() {
                     println!();
                 }
                 _ => {
-                    print!("{}", c);
+                    print!("{}", c as char);
                 }
             }
         }
