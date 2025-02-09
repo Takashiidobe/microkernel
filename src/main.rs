@@ -3,6 +3,7 @@
 #![feature(alloc_error_handler)]
 
 use core::panic::PanicInfo;
+use microkernel::plic;
 use microkernel::print;
 use microkernel::println;
 use microkernel::uart::Uart;
@@ -242,6 +243,19 @@ pub fn main() {
         let sparkle_heart = String::from_utf8(sparkle_heart).unwrap();
         println!("String = {}", sparkle_heart);
     }
+    // Let's set up the interrupt system via the PLIC. We have to set the threshold to something
+    // that won't mask all interrupts.
+    println!("Setting up interrupts and PLIC...");
+    // We lower the threshold wall so our interrupts can jump over it.
+    plic::set_threshold(0);
+    // VIRTIO = [1..8]
+    // UART0 = 10
+    // PCIE = [32..35]
+    // Enable the UART interrupt.
+    plic::enable(10);
+    plic::set_priority(10, 1);
+    println!("UART interrupts have been enabled and are awaiting your command");
+
     // If we get here, the Box, vec, and String should all be freed since
     // they go out of scope. This calls their "Drop" trait.
     // Now see if we can read stuff:

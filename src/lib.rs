@@ -6,6 +6,7 @@ pub mod consts;
 pub mod cpu;
 pub mod memory;
 pub mod page;
+pub mod plic;
 pub mod trap;
 pub mod uart;
 
