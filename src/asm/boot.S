@@ -46,7 +46,7 @@ _start:
 	la		sp, _stack_end
 	# Setting `mstatus` register:
 	# 0b01 << 11: Machine's previous protection mode is 2 (MPP=2).
-	li		t0, 0b11 << 11
+	li		t0, 0b11 << 11 | (1 << 13)
 	csrw	mstatus, t0
 	# Do not allow interrupts while running kinit
 	csrw	mie, zero
@@ -67,30 +67,15 @@ _start:
 	# 1 << 5     : Previous interrupt-enable bit is 1 (SPIE=1 [Enabled]).
 	# We set the "previous" bits because the mret will write the current bits
 	# with the previous bits.
-	li		t0, (0b01 << 11) | (1 << 7) | (1 << 5)
+	li		t0, (0b00 << 11) | (1 << 7) | (1 << 5) | (1 << 13)
 	csrw	mstatus, t0
 	# Machine's trap vector base address is set to `m_trap_vector`, for
 	# "machine" trap vector.
 	la		t2, m_trap_vector
 	csrw	mtvec, t2
-	# Setting `stvec` (supervisor trap vector) register:
-	# Essentially this is a function pointer, but the last two bits can be 00 or 01
-	# 00        : All exceptions set pc to BASE
-	# 01        : Asynchronous interrupts set pc to BASE + 4 x scause
-	# la		t3, s_trap_vector
-	# csrw	stvec, t3
-	# Jump to kmain. We put the MPP = 01 for supervisor mode, so after
-	# mret, we will jump to kmain in supervisor mode.
-	la		t1, main
-	csrw	mepc, t1
-	# Setting `sie` (supervisor interrupt enable) register:
-	# This register takes the same bits as mideleg
-	# 1 << 1    : Supervisor software interrupt enable (SSIE=1 [Enabled])
-	# 1 << 5    : Supervisor timer interrupt enable (STIE=1 [Enabled])
-	# 1 << 9    : Supervisor external interrupt enable (SEIE=1 [Enabled])
-	# 0xaaa = MEIP/SEIP and MTIP/STIP and MSIP/SSIP
-	li		t2, 0x888
-	csrw	mie, t2
+	# Jump to first process. We put the MPP = 00 for user mode, so after
+	# mret, we will jump to the first process' addresss in user mode.
+	la		ra, 4f
 	mret
 3:
 
@@ -111,7 +96,7 @@ _start:
 	sub		sp, sp, t0
 
 	# The parked harts will be put into machine mode with interrupts enabled.
-	li		t0, 0b11 << 11 | (1 << 7)
+	li		t0, 0b11 << 11 | (1 << 7) | (1 << 13)
 	csrw	mstatus, t0
 	# Allow for MSIP (Software interrupt). We will write the MSIP from hart #0 to
 	# awaken these parked harts.

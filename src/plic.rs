@@ -3,6 +3,9 @@
 // Stephen Marz
 // 1 Nov 2019
 
+use crate::uart;
+use crate::virtio;
+
 const PLIC_PRIORITY: usize = 0x0c00_0000;
 const PLIC_PENDING: usize = 0x0c00_1000;
 const PLIC_INT_ENABLE: usize = 0x0c00_2000;
@@ -22,6 +25,7 @@ const PLIC_CLAIM: usize = 0x0c20_0004;
 // UART0 = 10
 // PCIE = [32..35]
 
+
 /// Get the next available interrupt. This is the "claim" process.
 /// The plic will automatically sort by priority and hand us the
 /// ID of the interrupt. For example, if the UART is interrupting
@@ -37,7 +41,8 @@ pub fn next() -> Option<u32> {
         // The interrupt 0 is hardwired to 0, which tells us that there is no
         // interrupt to claim, hence we return None.
         None
-    } else {
+    }
+    else {
         // If we get here, we've gotten a non-0 interrupt.
         Some(claim_no)
     }
@@ -105,5 +110,27 @@ pub fn set_priority(id: u32, prio: u8) {
         // Since we're using pointer arithmetic on a u32 type,
         // it will automatically multiply the id by 4.
         prio_reg.add(id as usize).write_volatile(actual_prio);
+    }
+}
+
+pub fn handle_interrupt() {
+    if let Some(interrupt) = next() {
+        // If we get here, we've got an interrupt from the claim register. The PLIC will
+        // automatically prioritize the next interrupt, so when we get it from claim, it
+        // will be the next in priority order.
+        match interrupt {
+            1..=8 => {
+                virtio::handle_interrupt(interrupt);
+            }
+            10 => { // Interrupt 10 is the UART interrupt.
+                uart::handle_interrupt();
+            }
+            _ => {
+                println!("Unknown external interrupt: {}", interrupt);
+            }
+        }
+        // We've claimed it, so now say that we've handled it. This resets the interrupt pending
+        // and allows the UART to interrupt again. Otherwise, the UART will get "stuck".
+        complete(interrupt);
     }
 }
