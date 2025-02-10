@@ -1,5 +1,6 @@
 # user/bin/cat.rs
 ```rust
+// user/bin/cat.rs
 #![no_std]
 
 use ulib::{

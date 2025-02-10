@@ -1,5 +1,6 @@
 # kernel/stat.rs
 ```rust
+// kernel/stat.rs
 #[repr(u16)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum FileType {

@@ -1,5 +1,6 @@
 # user/bin/head.rs
 ```rust
+// user/bin/head.rs
 #![no_std]
 extern crate alloc;
 

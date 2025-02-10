@@ -1,5 +1,6 @@
 # kernel/entry.rs
 ```rust
+// kernel/entry.rs
 use crate::memlayout::STACK_PAGE_NUM;
 use crate::start::start;
 use core::arch::asm;

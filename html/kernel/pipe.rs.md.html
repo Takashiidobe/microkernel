@@ -132,76 +132,77 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <article class="markdown-body">
 <h1 id="kernelpipe.rs">kernel/pipe.rs</h1>
 <div class="sourceCode" id="cb1"><pre
-class="sourceCode rust"><code class="sourceCode rust"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="kw">crate</span><span class="pp">::</span><span class="op">{</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="pp">error::</span><span class="op">{</span><span class="bu">Error</span><span class="pp">::</span><span class="op">*,</span> <span class="dt">Result</span><span class="op">},</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="pp">fcntl::</span>OMode<span class="op">,</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="pp">file::</span><span class="op">{</span>FType<span class="op">,</span> File<span class="op">,</span> FTABLE<span class="op">},</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="pp">mpmc::</span><span class="op">*,</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">proc</span><span class="pp">::</span><span class="op">{</span>either_copyin<span class="op">,</span> either_copyout<span class="op">},</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="pp">vm::</span>VirtAddr<span class="op">,</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="at">#[</span>derive<span class="at">(</span><span class="bu">Debug</span><span class="at">)]</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">struct</span> Pipe <span class="op">{</span></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    rx<span class="op">:</span> <span class="dt">Option</span><span class="op">&lt;</span>Receiver<span class="op">&lt;</span><span class="dt">u8</span><span class="op">&gt;&gt;,</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    tx<span class="op">:</span> <span class="dt">Option</span><span class="op">&lt;</span>SyncSender<span class="op">&lt;</span><span class="dt">u8</span><span class="op">&gt;&gt;,</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="kw">impl</span> Pipe <span class="op">{</span></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> PIPESIZE<span class="op">:</span> <span class="dt">isize</span> <span class="op">=</span> <span class="dv">512</span><span class="op">;</span></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    <span class="kw">pub</span> <span class="kw">fn</span> new(rx<span class="op">:</span> <span class="dt">Option</span><span class="op">&lt;</span>Receiver<span class="op">&lt;</span><span class="dt">u8</span><span class="op">&gt;&gt;,</span> tx<span class="op">:</span> <span class="dt">Option</span><span class="op">&lt;</span>SyncSender<span class="op">&lt;</span><span class="dt">u8</span><span class="op">&gt;&gt;</span>) <span class="op">-&gt;</span> <span class="dt">Self</span> <span class="op">{</span></span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Self</span> <span class="op">{</span> rx<span class="op">,</span> tx <span class="op">}</span></span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>    <span class="kw">pub</span> <span class="kw">fn</span> get_mode(<span class="op">&amp;</span><span class="kw">self</span>) <span class="op">-&gt;</span> OMode <span class="op">{</span></span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> <span class="kw">mut</span> omode <span class="op">=</span> <span class="pp">OMode::</span>new()<span class="op">;</span></span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>        omode<span class="op">.</span>read(<span class="kw">self</span><span class="op">.</span>rx<span class="op">.</span>is_some())<span class="op">.</span>write(<span class="kw">self</span><span class="op">.</span>tx<span class="op">.</span>is_some())<span class="op">;</span></span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>        omode</span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>    <span class="kw">pub</span> <span class="kw">fn</span> alloc() <span class="op">-&gt;</span> <span class="dt">Result</span><span class="op">&lt;</span>(File<span class="op">,</span> File)<span class="op">&gt;</span> <span class="op">{</span></span>
-<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> (tx<span class="op">,</span> rx) <span class="op">=</span> <span class="pp">sync_channel::</span><span class="op">&lt;</span><span class="dt">u8</span><span class="op">&gt;</span>(<span class="dt">Self</span><span class="pp">::</span>PIPESIZE<span class="op">,</span> <span class="st">&quot;pipe&quot;</span>)<span class="op">;</span></span>
-<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> p0 <span class="op">=</span> <span class="dt">Self</span><span class="pp">::</span>new(<span class="cn">Some</span>(rx)<span class="op">,</span> <span class="cn">None</span>)<span class="op">;</span></span>
-<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> p1 <span class="op">=</span> <span class="dt">Self</span><span class="pp">::</span>new(<span class="cn">None</span><span class="op">,</span> <span class="cn">Some</span>(tx))<span class="op">;</span></span>
-<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> f0 <span class="op">=</span> FTABLE<span class="op">.</span>alloc(p0<span class="op">.</span>get_mode()<span class="op">,</span> <span class="pp">FType::</span>Pipe(p0))<span class="op">?;</span></span>
-<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> f1 <span class="op">=</span> FTABLE<span class="op">.</span>alloc(p1<span class="op">.</span>get_mode()<span class="op">,</span> <span class="pp">FType::</span>Pipe(p1))<span class="op">?;</span></span>
-<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>        <span class="cn">Ok</span>((f0<span class="op">,</span> f1))</span>
-<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>    <span class="kw">pub</span> <span class="kw">fn</span> write(<span class="op">&amp;</span><span class="kw">self</span><span class="op">,</span> <span class="kw">mut</span> src<span class="op">:</span> VirtAddr<span class="op">,</span> n<span class="op">:</span> <span class="dt">usize</span>) <span class="op">-&gt;</span> <span class="dt">Result</span><span class="op">&lt;</span><span class="dt">usize</span><span class="op">&gt;</span> <span class="op">{</span></span>
-<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> tx <span class="op">=</span> <span class="kw">self</span><span class="op">.</span>tx<span class="op">.</span>as_ref()<span class="op">.</span>ok_or(BrokenPipe)<span class="op">?;</span></span>
-<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> <span class="kw">mut</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
-<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>        <span class="cf">while</span> i <span class="op">&lt;</span> n <span class="op">{</span></span>
-<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>            <span class="kw">let</span> <span class="kw">mut</span> ch<span class="op">:</span> <span class="dt">u8</span> <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
-<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>            either_copyin(<span class="op">&amp;</span><span class="kw">mut</span> ch<span class="op">,</span> src)<span class="op">?;</span></span>
-<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a>            <span class="kw">let</span> <span class="cn">Ok</span>(_) <span class="op">=</span> tx<span class="op">.</span>send(ch) <span class="cf">else</span> <span class="op">{</span></span>
-<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>                <span class="cf">break</span><span class="op">;</span></span>
-<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a>            <span class="op">};</span></span>
-<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a>            src <span class="op">+=</span> <span class="dv">1</span><span class="op">;</span></span>
-<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a>            i <span class="op">+=</span> <span class="dv">1</span><span class="op">;</span></span>
-<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
-<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a>        <span class="cn">Ok</span>(i)</span>
-<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a>    <span class="kw">pub</span> <span class="kw">fn</span> read(<span class="op">&amp;</span><span class="kw">self</span><span class="op">,</span> <span class="kw">mut</span> dst<span class="op">:</span> VirtAddr<span class="op">,</span> n<span class="op">:</span> <span class="dt">usize</span>) <span class="op">-&gt;</span> <span class="dt">Result</span><span class="op">&lt;</span><span class="dt">usize</span><span class="op">&gt;</span> <span class="op">{</span></span>
-<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> rx <span class="op">=</span> <span class="kw">self</span><span class="op">.</span>rx<span class="op">.</span>as_ref()<span class="op">.</span>ok_or(BrokenPipe)<span class="op">?;</span></span>
-<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> <span class="kw">mut</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
-<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a>        <span class="cf">while</span> i <span class="op">&lt;</span> n <span class="op">{</span></span>
-<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a>            <span class="kw">let</span> <span class="cn">Ok</span>(ch) <span class="op">=</span> rx<span class="op">.</span>recv() <span class="cf">else</span> <span class="op">{</span></span>
-<span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a>                <span class="cf">break</span><span class="op">;</span></span>
-<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a>            <span class="op">};</span></span>
-<span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a>            either_copyout(dst<span class="op">,</span> <span class="op">&amp;</span>ch)<span class="op">?;</span></span>
-<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a>            dst <span class="op">+=</span> <span class="dv">1</span><span class="op">;</span></span>
-<span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a>            i <span class="op">+=</span> <span class="dv">1</span><span class="op">;</span></span>
-<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
-<span id="cb1-68"><a href="#cb1-68" aria-hidden="true" tabindex="-1"></a>        <span class="cn">Ok</span>(i)</span>
-<span id="cb1-69"><a href="#cb1-69" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb1-70"><a href="#cb1-70" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// kernel/pipe.rs</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="kw">crate</span><span class="pp">::</span><span class="op">{</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="pp">error::</span><span class="op">{</span><span class="bu">Error</span><span class="pp">::</span><span class="op">*,</span> <span class="dt">Result</span><span class="op">},</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="pp">fcntl::</span>OMode<span class="op">,</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="pp">file::</span><span class="op">{</span>FType<span class="op">,</span> File<span class="op">,</span> FTABLE<span class="op">},</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="pp">mpmc::</span><span class="op">*,</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">proc</span><span class="pp">::</span><span class="op">{</span>either_copyin<span class="op">,</span> either_copyout<span class="op">},</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="pp">vm::</span>VirtAddr<span class="op">,</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="at">#[</span>derive<span class="at">(</span><span class="bu">Debug</span><span class="at">)]</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">struct</span> Pipe <span class="op">{</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    rx<span class="op">:</span> <span class="dt">Option</span><span class="op">&lt;</span>Receiver<span class="op">&lt;</span><span class="dt">u8</span><span class="op">&gt;&gt;,</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    tx<span class="op">:</span> <span class="dt">Option</span><span class="op">&lt;</span>SyncSender<span class="op">&lt;</span><span class="dt">u8</span><span class="op">&gt;&gt;,</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="kw">impl</span> Pipe <span class="op">{</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> PIPESIZE<span class="op">:</span> <span class="dt">isize</span> <span class="op">=</span> <span class="dv">512</span><span class="op">;</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    <span class="kw">pub</span> <span class="kw">fn</span> new(rx<span class="op">:</span> <span class="dt">Option</span><span class="op">&lt;</span>Receiver<span class="op">&lt;</span><span class="dt">u8</span><span class="op">&gt;&gt;,</span> tx<span class="op">:</span> <span class="dt">Option</span><span class="op">&lt;</span>SyncSender<span class="op">&lt;</span><span class="dt">u8</span><span class="op">&gt;&gt;</span>) <span class="op">-&gt;</span> <span class="dt">Self</span> <span class="op">{</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>        <span class="dt">Self</span> <span class="op">{</span> rx<span class="op">,</span> tx <span class="op">}</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    <span class="kw">pub</span> <span class="kw">fn</span> get_mode(<span class="op">&amp;</span><span class="kw">self</span>) <span class="op">-&gt;</span> OMode <span class="op">{</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> <span class="kw">mut</span> omode <span class="op">=</span> <span class="pp">OMode::</span>new()<span class="op">;</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>        omode<span class="op">.</span>read(<span class="kw">self</span><span class="op">.</span>rx<span class="op">.</span>is_some())<span class="op">.</span>write(<span class="kw">self</span><span class="op">.</span>tx<span class="op">.</span>is_some())<span class="op">;</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>        omode</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>    <span class="kw">pub</span> <span class="kw">fn</span> alloc() <span class="op">-&gt;</span> <span class="dt">Result</span><span class="op">&lt;</span>(File<span class="op">,</span> File)<span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> (tx<span class="op">,</span> rx) <span class="op">=</span> <span class="pp">sync_channel::</span><span class="op">&lt;</span><span class="dt">u8</span><span class="op">&gt;</span>(<span class="dt">Self</span><span class="pp">::</span>PIPESIZE<span class="op">,</span> <span class="st">&quot;pipe&quot;</span>)<span class="op">;</span></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> p0 <span class="op">=</span> <span class="dt">Self</span><span class="pp">::</span>new(<span class="cn">Some</span>(rx)<span class="op">,</span> <span class="cn">None</span>)<span class="op">;</span></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> p1 <span class="op">=</span> <span class="dt">Self</span><span class="pp">::</span>new(<span class="cn">None</span><span class="op">,</span> <span class="cn">Some</span>(tx))<span class="op">;</span></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> f0 <span class="op">=</span> FTABLE<span class="op">.</span>alloc(p0<span class="op">.</span>get_mode()<span class="op">,</span> <span class="pp">FType::</span>Pipe(p0))<span class="op">?;</span></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> f1 <span class="op">=</span> FTABLE<span class="op">.</span>alloc(p1<span class="op">.</span>get_mode()<span class="op">,</span> <span class="pp">FType::</span>Pipe(p1))<span class="op">?;</span></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>        <span class="cn">Ok</span>((f0<span class="op">,</span> f1))</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>    <span class="kw">pub</span> <span class="kw">fn</span> write(<span class="op">&amp;</span><span class="kw">self</span><span class="op">,</span> <span class="kw">mut</span> src<span class="op">:</span> VirtAddr<span class="op">,</span> n<span class="op">:</span> <span class="dt">usize</span>) <span class="op">-&gt;</span> <span class="dt">Result</span><span class="op">&lt;</span><span class="dt">usize</span><span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> tx <span class="op">=</span> <span class="kw">self</span><span class="op">.</span>tx<span class="op">.</span>as_ref()<span class="op">.</span>ok_or(BrokenPipe)<span class="op">?;</span></span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> <span class="kw">mut</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>        <span class="cf">while</span> i <span class="op">&lt;</span> n <span class="op">{</span></span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>            <span class="kw">let</span> <span class="kw">mut</span> ch<span class="op">:</span> <span class="dt">u8</span> <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a>            either_copyin(<span class="op">&amp;</span><span class="kw">mut</span> ch<span class="op">,</span> src)<span class="op">?;</span></span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>            <span class="kw">let</span> <span class="cn">Ok</span>(_) <span class="op">=</span> tx<span class="op">.</span>send(ch) <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a>                <span class="cf">break</span><span class="op">;</span></span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a>            <span class="op">};</span></span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a>            src <span class="op">+=</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a>            i <span class="op">+=</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a>        <span class="cn">Ok</span>(i)</span>
+<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a>    <span class="kw">pub</span> <span class="kw">fn</span> read(<span class="op">&amp;</span><span class="kw">self</span><span class="op">,</span> <span class="kw">mut</span> dst<span class="op">:</span> VirtAddr<span class="op">,</span> n<span class="op">:</span> <span class="dt">usize</span>) <span class="op">-&gt;</span> <span class="dt">Result</span><span class="op">&lt;</span><span class="dt">usize</span><span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> rx <span class="op">=</span> <span class="kw">self</span><span class="op">.</span>rx<span class="op">.</span>as_ref()<span class="op">.</span>ok_or(BrokenPipe)<span class="op">?;</span></span>
+<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> <span class="kw">mut</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a>        <span class="cf">while</span> i <span class="op">&lt;</span> n <span class="op">{</span></span>
+<span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a>            <span class="kw">let</span> <span class="cn">Ok</span>(ch) <span class="op">=</span> rx<span class="op">.</span>recv() <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a>                <span class="cf">break</span><span class="op">;</span></span>
+<span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a>            <span class="op">};</span></span>
+<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a>            either_copyout(dst<span class="op">,</span> <span class="op">&amp;</span>ch)<span class="op">?;</span></span>
+<span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a>            dst <span class="op">+=</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a>            i <span class="op">+=</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb1-68"><a href="#cb1-68" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb1-69"><a href="#cb1-69" aria-hidden="true" tabindex="-1"></a>        <span class="cn">Ok</span>(i)</span>
+<span id="cb1-70"><a href="#cb1-70" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-71"><a href="#cb1-71" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 </article>
 <script>window.MathJax = { tex: {inlineMath: [["$", "$"], ["\\(", "\\)"]]} }</script>
 </body>

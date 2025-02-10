@@ -1,5 +1,6 @@
 # kernel/uart.rs
 ```rust
+// kernel/uart.rs
 use crate::{
     console::CONS,
     memlayout::UART0,

@@ -1,5 +1,6 @@
 # user/lib/stdio.rs
 ```rust
+// user/lib/stdio.rs
 use alloc::string::String;
 use alloc::vec::Vec;
 

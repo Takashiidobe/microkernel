@@ -132,21 +132,22 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <article class="markdown-body">
 <h1 id="userlibpipe.rs">user/lib/pipe.rs</h1>
 <div class="sourceCode" id="cb1"><pre
-class="sourceCode rust"><code class="sourceCode rust"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="kw">crate</span><span class="pp">::</span><span class="op">{</span><span class="pp">fs::</span>File<span class="op">,</span> sys<span class="op">};</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">fn</span> pipe() <span class="op">-&gt;</span> <span class="pp">sys::</span><span class="dt">Result</span><span class="op">&lt;</span>(File<span class="op">,</span> File)<span class="op">&gt;</span> <span class="op">{</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> <span class="kw">mut</span> fds <span class="op">=</span> [<span class="dv">0</span><span class="op">;</span> <span class="dv">2</span>]<span class="op">;</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="pp">sys::</span>pipe(<span class="op">&amp;</span><span class="kw">mut</span> fds)<span class="op">?;</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> <span class="kw">mut</span> file0<span class="op">;</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> <span class="kw">mut</span> file1<span class="op">;</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">unsafe</span> <span class="op">{</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>        file0 <span class="op">=</span> <span class="pp">File::</span>from_raw_fd(fds[<span class="dv">0</span>])<span class="op">;</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>        file1 <span class="op">=</span> <span class="pp">File::</span>from_raw_fd(fds[<span class="dv">1</span>])<span class="op">;</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    file0<span class="op">.</span>set_cloexec()<span class="op">?;</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    file1<span class="op">.</span>set_cloexec()<span class="op">?;</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    <span class="cn">Ok</span>((file0<span class="op">,</span> file1))</span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// user/lib/pipe.rs</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="kw">crate</span><span class="pp">::</span><span class="op">{</span><span class="pp">fs::</span>File<span class="op">,</span> sys<span class="op">};</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">fn</span> pipe() <span class="op">-&gt;</span> <span class="pp">sys::</span><span class="dt">Result</span><span class="op">&lt;</span>(File<span class="op">,</span> File)<span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> <span class="kw">mut</span> fds <span class="op">=</span> [<span class="dv">0</span><span class="op">;</span> <span class="dv">2</span>]<span class="op">;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="pp">sys::</span>pipe(<span class="op">&amp;</span><span class="kw">mut</span> fds)<span class="op">?;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> <span class="kw">mut</span> file0<span class="op">;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> <span class="kw">mut</span> file1<span class="op">;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="kw">unsafe</span> <span class="op">{</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>        file0 <span class="op">=</span> <span class="pp">File::</span>from_raw_fd(fds[<span class="dv">0</span>])<span class="op">;</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>        file1 <span class="op">=</span> <span class="pp">File::</span>from_raw_fd(fds[<span class="dv">1</span>])<span class="op">;</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    file0<span class="op">.</span>set_cloexec()<span class="op">?;</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    file1<span class="op">.</span>set_cloexec()<span class="op">?;</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    <span class="cn">Ok</span>((file0<span class="op">,</span> file1))</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 </article>
 <script>window.MathJax = { tex: {inlineMath: [["$", "$"], ["\\(", "\\)"]]} }</script>
 </body>

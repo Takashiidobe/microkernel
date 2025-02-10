@@ -1,5 +1,6 @@
 # user/bin/echo.rs
 ```rust
+// user/bin/echo.rs
 #![no_std]
 use ulib::{env, print, println};
 

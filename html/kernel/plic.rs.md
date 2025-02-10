@@ -1,5 +1,6 @@
 # kernel/plic.rs
 ```rust
+// kernel/plic.rs
 use crate::{
     memlayout::{PLIC_PRIORITY, PLIC_SCLAIM, PLIC_SENABLE, PLIC_SPRIORITY, UART0_IRQ, VIRTIO0_IRQ},
     proc::Cpus,

@@ -1,5 +1,6 @@
 # kernel/printf.rs
 ```rust
+// kernel/printf.rs
 use crate::console;
 use crate::spinlock::Mutex;
 use core::fmt;

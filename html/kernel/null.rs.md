@@ -1,5 +1,6 @@
 # kernel/null.rs
 ```rust
+// kernel/null.rs
 use crate::error::Result;
 use crate::file::{Device, Major, DEVSW};
 use crate::vm::VirtAddr;

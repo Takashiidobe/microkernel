@@ -1,5 +1,6 @@
 # kernel/defs.rs
 ```rust
+// kernel/defs.rs
 // Gets the bytes of the value.
 //
 // as_bytes() provides access to the bytes of the value as an immutable

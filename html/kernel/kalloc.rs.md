@@ -1,5 +1,6 @@
 # kernel/kalloc.rs
 ```rust
+// kernel/kalloc.rs
 // Physical memory allocator based on BuddyAllocator.
 
 use crate::buddy::BuddyAllocator;

@@ -1,5 +1,6 @@
 # kernel/fcntl.rs
 ```rust
+// kernel/fcntl.rs
 pub mod omode {
     pub const RDONLY: usize = 0x000;
     pub const WRONLY: usize = 0x001;

@@ -1,5 +1,6 @@
 # kernel/log.rs
 ```rust
+// kernel/log.rs
 use crate::{
     bio::{BufGuard, BCACHE},
     fs::{BSIZE, SB},

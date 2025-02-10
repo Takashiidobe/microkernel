@@ -1,5 +1,6 @@
 # user/lib/lib.rs
 ```rust
+// user/lib/lib.rs
 #![no_std]
 #![feature(lang_items, never_type, allocator_api, alloc_error_handler)]
 #![allow(clippy::missing_safety_doc)]

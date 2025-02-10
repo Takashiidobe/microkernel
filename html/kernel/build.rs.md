@@ -1,5 +1,6 @@
 # kernel/build.rs
 ```rust
+// kernel/build.rs
 //use std::path::Path;
 
 fn main() {

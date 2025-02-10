@@ -1,5 +1,6 @@
 # kernel/bio.rs
 ```rust
+// kernel/bio.rs
 // Buffer cache.
 //
 // The buffer cache is a linked list of buf structures holding

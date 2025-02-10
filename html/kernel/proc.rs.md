@@ -1,5 +1,6 @@
 # kernel/proc.rs
 ```rust
+// kernel/proc.rs
 use crate::bio::BCACHE;
 use crate::defs::AsBytes;
 use crate::elf::{self, ElfHdr, ProgHdr};

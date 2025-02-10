@@ -1,5 +1,6 @@
 # user/lib/path.rs
 ```rust
+// user/lib/path.rs
 use alloc::string::{String, ToString};
 use core::{fmt, todo};
 

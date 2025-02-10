@@ -1,5 +1,6 @@
 # user/bin/ls.rs
 ```rust
+// user/bin/ls.rs
 #![no_std]
 use alloc::format;
 use ulib::{

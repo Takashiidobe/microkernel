@@ -1,5 +1,6 @@
 # kernel/trap.rs
 ```rust
+// kernel/trap.rs
 use crate::{
     kernelvec::kernelvec,
     memlayout::{STACK_PAGE_NUM, TRAMPOLINE, UART0_IRQ, VIRTIO0_IRQ},

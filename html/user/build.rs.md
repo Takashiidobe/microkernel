@@ -1,5 +1,6 @@
 # user/build.rs
 ```rust
+// user/build.rs
 use kernel::syscall::*;
 use std::{
     fs::{self, File},

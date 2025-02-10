@@ -1,5 +1,6 @@
 # kernel/console.rs
 ```rust
+// kernel/console.rs
 // Console input and output, to the uart.
 // Reads are line at a time.
 // Implements special input characters:

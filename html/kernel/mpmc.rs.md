@@ -1,5 +1,6 @@
 # kernel/mpmc.rs
 ```rust
+// kernel/mpmc.rs
 use crate::condvar::Condvar;
 use crate::error::{Error::NotConnected, Result};
 use crate::semaphore::Semaphore;

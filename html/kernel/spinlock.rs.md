@@ -1,5 +1,6 @@
 # kernel/spinlock.rs
 ```rust
+// kernel/spinlock.rs
 use crate::riscv::intr_get;
 
 use super::proc::{Cpu, Cpus, IntrLock, CPUS};

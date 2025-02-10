@@ -1,5 +1,6 @@
 # kernel/file.rs
 ```rust
+// kernel/file.rs
 #[cfg(all(target_os = "none", feature = "kernel"))]
 use crate::array;
 #[cfg(all(target_os = "none", feature = "kernel"))]

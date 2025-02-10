@@ -1,5 +1,6 @@
 # mkfs/main.rs
 ```rust
+// mkfs/main.rs
 use kernel::{defs::*, fs::*, param::*, stat::*};
 use std::{env, io};
 use std::fs::{File, OpenOptions};

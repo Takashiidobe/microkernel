@@ -1,5 +1,6 @@
 # user/bin/wc.rs
 ```rust
+// user/bin/wc.rs
 #![no_std]
 use ulib::{env, fs::File, io::Read, print, println, stdio::stdin, sys};
 

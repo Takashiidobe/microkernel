@@ -1,5 +1,6 @@
 # kernel/param.rs
 ```rust
+// kernel/param.rs
 pub const NCPU: usize = 8; // maximum number of CPUs
 pub const NPROC: usize = 16; // maximum number of processes
 pub const NOFILE: usize = 16; // open files per process

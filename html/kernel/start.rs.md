@@ -1,5 +1,6 @@
 # kernel/start.rs
 ```rust
+// kernel/start.rs
 use crate::kernelvec::*;
 use crate::memlayout::*;
 use crate::param::NCPU;

@@ -1,5 +1,6 @@
 # user/bin/init.rs
 ```rust
+// user/bin/init.rs
 #![no_std]
 extern crate alloc;
 use ulib::{

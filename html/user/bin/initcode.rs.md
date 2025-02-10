@@ -1,5 +1,6 @@
 # user/bin/initcode.rs
 ```rust
+// user/bin/initcode.rs
 #![no_std]
 use ulib::sys;
 

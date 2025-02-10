@@ -1,5 +1,6 @@
 # user/lib/pipe.rs
 ```rust
+// user/lib/pipe.rs
 use crate::{fs::File, sys};
 
 pub fn pipe() -> sys::Result<(File, File)> {

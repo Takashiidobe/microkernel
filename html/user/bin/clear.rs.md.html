@@ -132,14 +132,15 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <article class="markdown-body">
 <h1 id="userbinclear.rs">user/bin/clear.rs</h1>
 <div class="sourceCode" id="cb1"><pre
-class="sourceCode rust"><code class="sourceCode rust"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="at">#![</span>no_std<span class="at">]</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">ulib::</span><span class="op">{</span><span class="pp">io::</span><span class="bu">Write</span><span class="op">,</span> <span class="pp">stdio::</span>stdout<span class="op">};</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="kw">fn</span> main() <span class="op">{</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">// clear the screen</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    stdout()<span class="op">.</span>write(<span class="st">b&quot;</span><span class="sc">\x1b</span><span class="st">[2J</span><span class="sc">\x1b</span><span class="st">[H&quot;</span>)<span class="op">.</span>unwrap()<span class="op">;</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// user/bin/clear.rs</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="at">#![</span>no_std<span class="at">]</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">ulib::</span><span class="op">{</span><span class="pp">io::</span><span class="bu">Write</span><span class="op">,</span> <span class="pp">stdio::</span>stdout<span class="op">};</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="kw">fn</span> main() <span class="op">{</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">// clear the screen</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    stdout()<span class="op">.</span>write(<span class="st">b&quot;</span><span class="sc">\x1b</span><span class="st">[2J</span><span class="sc">\x1b</span><span class="st">[H&quot;</span>)<span class="op">.</span>unwrap()<span class="op">;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 </article>
 <script>window.MathJax = { tex: {inlineMath: [["$", "$"], ["\\(", "\\)"]]} }</script>
 </body>

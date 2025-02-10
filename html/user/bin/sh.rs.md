@@ -1,5 +1,6 @@
 # user/bin/sh.rs
 ```rust
+// user/bin/sh.rs
 #![no_std]
 extern crate alloc;
 use alloc::{

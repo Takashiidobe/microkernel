@@ -1,5 +1,6 @@
 # user/bin/ln.rs
 ```rust
+// user/bin/ln.rs
 #![no_std]
 use ulib::{env, fs};
 

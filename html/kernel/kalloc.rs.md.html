@@ -132,47 +132,48 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <article class="markdown-body">
 <h1 id="kernelkalloc.rs">kernel/kalloc.rs</h1>
 <div class="sourceCode" id="cb1"><pre
-class="sourceCode rust"><code class="sourceCode rust"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Physical memory allocator based on BuddyAllocator.</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="kw">crate</span><span class="pp">::buddy::</span>BuddyAllocator<span class="op">;</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="kw">crate</span><span class="pp">::memlayout::</span>PHYSTOP<span class="op">;</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="kw">crate</span><span class="pp">::spinlock::</span>Mutex<span class="op">;</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">core::alloc::</span><span class="op">{</span><span class="bu">GlobalAlloc</span><span class="op">,</span> Layout<span class="op">};</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">core::</span>ptr<span class="op">;</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="kw">extern</span> <span class="st">&quot;C&quot;</span> <span class="op">{</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">// first address after kernel.</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">// defined by kernel.ld</span></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static</span> <span class="kw">mut</span> end<span class="op">:</span> [<span class="dt">u8</span><span class="op">;</span> <span class="dv">0</span>]<span class="op">;</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="at">#[</span>global_allocator<span class="at">]</span></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">static</span> KMEM<span class="op">:</span> Kmem <span class="op">=</span> Kmem(<span class="pp">Mutex::</span>new(<span class="pp">BuddyAllocator::</span>new()<span class="op">,</span> <span class="st">&quot;kmem&quot;</span>))<span class="op">;</span></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="at">#[</span>alloc_error_handler<span class="at">]</span></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="kw">fn</span> on_oom(layout<span class="op">:</span> Layout) <span class="op">-&gt;</span> <span class="op">!</span> <span class="op">{</span></span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    <span class="pp">panic!</span>(<span class="st">&quot;alloc error: {:?}&quot;</span><span class="op">,</span> layout)</span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">struct</span> Kmem(Mutex<span class="op">&lt;</span>BuddyAllocator<span class="op">&gt;</span>)<span class="op">;</span></span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="kw">unsafe</span> <span class="kw">impl</span> <span class="bu">GlobalAlloc</span> <span class="cf">for</span> Kmem <span class="op">{</span></span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    <span class="kw">unsafe</span> <span class="kw">fn</span> alloc(<span class="op">&amp;</span><span class="kw">self</span><span class="op">,</span> layout<span class="op">:</span> Layout) <span class="op">-&gt;</span> <span class="op">*</span><span class="kw">mut</span> <span class="dt">u8</span> <span class="op">{</span></span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>        <span class="kw">self</span><span class="op">.</span><span class="dv">0</span></span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>            <span class="op">.</span>lock()</span>
-<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>            <span class="op">.</span>alloc(layout)</span>
-<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>            <span class="op">.</span>map_or(<span class="pp">ptr::</span>null_mut()<span class="op">,</span> <span class="op">|</span>p<span class="op">|</span> p<span class="op">.</span>as_ptr())</span>
-<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>    <span class="kw">unsafe</span> <span class="kw">fn</span> dealloc(<span class="op">&amp;</span><span class="kw">self</span><span class="op">,</span> ptr<span class="op">:</span> <span class="op">*</span><span class="kw">mut</span> <span class="dt">u8</span><span class="op">,</span> layout<span class="op">:</span> Layout) <span class="op">{</span></span>
-<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>        <span class="kw">self</span><span class="op">.</span><span class="dv">0</span><span class="op">.</span>lock()<span class="op">.</span>dealloc(ptr<span class="op">,</span> layout)</span>
-<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">fn</span> init() <span class="op">{</span></span>
-<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>    <span class="kw">unsafe</span> <span class="op">{</span></span>
-<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>        KMEM<span class="op">.</span><span class="dv">0</span><span class="op">.</span>lock()<span class="op">.</span>init(end<span class="op">.</span>as_ptr() <span class="kw">as</span> <span class="dt">usize</span><span class="op">,</span> PHYSTOP)<span class="op">.</span>unwrap()<span class="op">;</span></span>
-<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// kernel/kalloc.rs</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co">// Physical memory allocator based on BuddyAllocator.</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="kw">crate</span><span class="pp">::buddy::</span>BuddyAllocator<span class="op">;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="kw">crate</span><span class="pp">::memlayout::</span>PHYSTOP<span class="op">;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="kw">crate</span><span class="pp">::spinlock::</span>Mutex<span class="op">;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">core::alloc::</span><span class="op">{</span><span class="bu">GlobalAlloc</span><span class="op">,</span> Layout<span class="op">};</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">core::</span>ptr<span class="op">;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="kw">extern</span> <span class="st">&quot;C&quot;</span> <span class="op">{</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">// first address after kernel.</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="co">// defined by kernel.ld</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static</span> <span class="kw">mut</span> end<span class="op">:</span> [<span class="dt">u8</span><span class="op">;</span> <span class="dv">0</span>]<span class="op">;</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="at">#[</span>global_allocator<span class="at">]</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">static</span> KMEM<span class="op">:</span> Kmem <span class="op">=</span> Kmem(<span class="pp">Mutex::</span>new(<span class="pp">BuddyAllocator::</span>new()<span class="op">,</span> <span class="st">&quot;kmem&quot;</span>))<span class="op">;</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="at">#[</span>alloc_error_handler<span class="at">]</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="kw">fn</span> on_oom(layout<span class="op">:</span> Layout) <span class="op">-&gt;</span> <span class="op">!</span> <span class="op">{</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    <span class="pp">panic!</span>(<span class="st">&quot;alloc error: {:?}&quot;</span><span class="op">,</span> layout)</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">struct</span> Kmem(Mutex<span class="op">&lt;</span>BuddyAllocator<span class="op">&gt;</span>)<span class="op">;</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="kw">unsafe</span> <span class="kw">impl</span> <span class="bu">GlobalAlloc</span> <span class="cf">for</span> Kmem <span class="op">{</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    <span class="kw">unsafe</span> <span class="kw">fn</span> alloc(<span class="op">&amp;</span><span class="kw">self</span><span class="op">,</span> layout<span class="op">:</span> Layout) <span class="op">-&gt;</span> <span class="op">*</span><span class="kw">mut</span> <span class="dt">u8</span> <span class="op">{</span></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>        <span class="kw">self</span><span class="op">.</span><span class="dv">0</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>            <span class="op">.</span>lock()</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>            <span class="op">.</span>alloc(layout)</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>            <span class="op">.</span>map_or(<span class="pp">ptr::</span>null_mut()<span class="op">,</span> <span class="op">|</span>p<span class="op">|</span> p<span class="op">.</span>as_ptr())</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>    <span class="kw">unsafe</span> <span class="kw">fn</span> dealloc(<span class="op">&amp;</span><span class="kw">self</span><span class="op">,</span> ptr<span class="op">:</span> <span class="op">*</span><span class="kw">mut</span> <span class="dt">u8</span><span class="op">,</span> layout<span class="op">:</span> Layout) <span class="op">{</span></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>        <span class="kw">self</span><span class="op">.</span><span class="dv">0</span><span class="op">.</span>lock()<span class="op">.</span>dealloc(ptr<span class="op">,</span> layout)</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">fn</span> init() <span class="op">{</span></span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>    <span class="kw">unsafe</span> <span class="op">{</span></span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>        KMEM<span class="op">.</span><span class="dv">0</span><span class="op">.</span>lock()<span class="op">.</span>init(end<span class="op">.</span>as_ptr() <span class="kw">as</span> <span class="dt">usize</span><span class="op">,</span> PHYSTOP)<span class="op">.</span>unwrap()<span class="op">;</span></span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 </article>
 <script>window.MathJax = { tex: {inlineMath: [["$", "$"], ["\\(", "\\)"]]} }</script>
 </body>

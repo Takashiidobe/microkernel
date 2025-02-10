@@ -1,5 +1,6 @@
 # kernel/error.rs
 ```rust
+// kernel/error.rs
 use core::fmt;
 
 pub type Result<T> = core::result::Result<T, Error>;

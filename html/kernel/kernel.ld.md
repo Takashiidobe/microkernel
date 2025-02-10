@@ -1,5 +1,6 @@
 # kernel/kernel.ld
 ```rust
+// kernel/kernel.ld
 OUTPUT_ARCH( "riscv" )
 ENTRY( _entry )
 

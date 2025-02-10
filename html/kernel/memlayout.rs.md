@@ -1,5 +1,6 @@
 # kernel/memlayout.rs
 ```rust
+// kernel/memlayout.rs
 // Physical memory layout
 use crate::riscv::PGSIZE;
 use crate::vm::{KVAddr, VAddr};

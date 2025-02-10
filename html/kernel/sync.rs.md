@@ -1,5 +1,6 @@
 # kernel/sync.rs
 ```rust
+// kernel/sync.rs
 use core::cell::{Cell, UnsafeCell};
 use core::mem::MaybeUninit;
 use core::ops::Deref;

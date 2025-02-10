@@ -1,5 +1,6 @@
 # user/bin/clear.rs
 ```rust
+// user/bin/clear.rs
 #![no_std]
 
 use ulib::{io::Write, stdio::stdout};

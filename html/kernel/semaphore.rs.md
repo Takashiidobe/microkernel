@@ -1,5 +1,6 @@
 # kernel/semaphore.rs
 ```rust
+// kernel/semaphore.rs
 use crate::{
     condvar::Condvar,
     error::{Error::InvalidArgument, Result},

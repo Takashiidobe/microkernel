@@ -1,5 +1,6 @@
 # kernel/syscall.rs
 ```rust
+// kernel/syscall.rs
 #[cfg(all(target_os = "none", feature = "kernel"))]
 use crate::error::Error::*;
 use crate::error::Result;

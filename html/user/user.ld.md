@@ -1,5 +1,6 @@
 # user/user.ld
 ```rust
+// user/user.ld
 OUTPUT_ARCH( "riscv" )
 ENTRY( main )
 

@@ -1,5 +1,6 @@
 # kernel/pipe.rs
 ```rust
+// kernel/pipe.rs
 use crate::{
     error::{Error::*, Result},
     fcntl::OMode,

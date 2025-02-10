@@ -1,5 +1,6 @@
 # kernel/riscv.rs
 ```rust
+// kernel/riscv.rs
 // RISC-V registers
 pub mod registers {
     // hart (core) id registers

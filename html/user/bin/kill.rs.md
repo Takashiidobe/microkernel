@@ -1,5 +1,6 @@
 # user/bin/kill.rs
 ```rust
+// user/bin/kill.rs
 #![no_std]
 use ulib::{env, sys};
 

@@ -1,5 +1,6 @@
 # kernel/exec.rs
 ```rust
+// kernel/exec.rs
 use crate::{
     elf::{self, ElfHdr, ProgHdr},
     error::{Error::*, Result},

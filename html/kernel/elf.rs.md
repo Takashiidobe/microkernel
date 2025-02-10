@@ -1,5 +1,6 @@
 # kernel/elf.rs
 ```rust
+// kernel/elf.rs
 pub const EI_MAG0: usize = 0;
 pub const EI_MAG1: usize = 1;
 pub const EI_MAG2: usize = 2;

@@ -1,5 +1,6 @@
 # kernel/lib.rs
 ```rust
+// kernel/lib.rs
 #![cfg_attr(target_os = "none", no_std)]
 #![cfg_attr(
     all(target_os = "none", feature = "kernel"),
